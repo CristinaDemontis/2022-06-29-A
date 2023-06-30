@@ -7,8 +7,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+
 import it.polito.tdp.itunes.model.Album;
 import it.polito.tdp.itunes.model.Artist;
+import it.polito.tdp.itunes.model.CoppieAlbum;
 import it.polito.tdp.itunes.model.Genre;
 import it.polito.tdp.itunes.model.MediaType;
 import it.polito.tdp.itunes.model.Playlist;
@@ -27,6 +30,65 @@ public class ItunesDAO {
 
 			while (res.next()) {
 				result.add(new Album(res.getInt("AlbumId"), res.getString("Title")));
+			}
+			conn.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new RuntimeException("SQL Error");
+		}
+		return result;
+	}
+	
+	public List<Album> getAllAlbumsWTnTracks(int n){
+		final String sql = "SELECT a.AlbumId, a.Title "
+				+ "FROM track t, album a "
+				+ "WHERE t.AlbumId = a.AlbumId "
+				+ "GROUP BY a.AlbumId "
+				+ "HAVING COUNT(t.TrackId) > ? ";
+		List<Album> result = new LinkedList<>();
+		
+		try {
+			Connection conn = DBConnect.getConnection();
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setInt(1, n);
+			ResultSet res = st.executeQuery();
+
+			while (res.next()) {
+				result.add(new Album(res.getInt("AlbumId"), res.getString("Title")));
+			}
+			conn.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new RuntimeException("SQL Error");
+		}
+		return result;
+	}
+	
+	public List<CoppieAlbum> getCoppieAlbum(int n, Map<Integer, Album> mappa){
+		
+		String sql = "SELECT tabA1.AlbumId AS a1, tabA2.AlbumId AS a2, tabA1.ntracce AS n1, tabA2.ntracce AS n2, ABS(tabA1.ntracce-tabA2.ntracce) AS differenza "
+				+ "FROM (SELECT AlbumId, COUNT(*) AS ntracce "
+				+ "		FROM track "
+				+ "		GROUP BY AlbumId "
+				+ "		HAVING COUNT(*) > ?) tabA1, "
+				+ "		(SELECT AlbumId, COUNT(*) AS ntracce "
+				+ "		 FROM track "
+				+ "		 GROUP BY AlbumId "
+				+ "		 HAVING COUNT(*) > ?) tabA2 "
+				+ "WHERE tabA1.AlbumId > tabA2.AlbumId AND ABS(tabA1.ntracce-tabA2.ntracce)>0 "; 
+		List<CoppieAlbum> result = new LinkedList<>(); 
+		
+		try {
+			Connection conn = DBConnect.getConnection();
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setInt(1, n);
+			st.setInt(2, n);
+			ResultSet res = st.executeQuery();
+
+			while (res.next()) {
+				Album a1 = mappa.get(res.getInt("a1")); 
+				Album a2 = mappa.get(res.getInt("a2")); 
+				result.add(new CoppieAlbum(a1, a2, res.getInt("n1"), res.getInt("n2"), res.getInt("differenza"))); 
 			}
 			conn.close();
 		} catch (SQLException e) {
@@ -75,6 +137,8 @@ public class ItunesDAO {
 		}
 		return result;
 	}
+	
+	
 	
 	public List<Track> getAllTracks(){
 		final String sql = "SELECT * FROM Track";

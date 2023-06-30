@@ -5,6 +5,7 @@
 package it.polito.tdp.itunes;
 
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
 import it.polito.tdp.itunes.model.Album;
 import it.polito.tdp.itunes.model.Model;
@@ -35,7 +36,7 @@ public class FXMLController {
     private Button btnPercorso; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbA1"
-    private ComboBox<?> cmbA1; // Value injected by FXMLLoader
+    private ComboBox<Album> cmbA1; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbA2"
     private ComboBox<?> cmbA2; // Value injected by FXMLLoader
@@ -51,7 +52,18 @@ public class FXMLController {
 
     @FXML
     void doCalcolaAdiacenze(ActionEvent event) {
-    	
+    	Album album = cmbA1.getValue(); 
+    	if(album == null) {
+    		txtResult.setText("Selezionare un album!");
+    		return; 
+    	}else {
+    		List<Album> result = model.getAdiacenze(album); 
+    		txtResult.clear();
+    		for(Album a: result) {
+    			txtResult.appendText(a.getTitle() +", bilancio = "+a.getBilancio()+"\n");
+    		}
+    		return; 
+    	}
     }
 
     @FXML
@@ -61,7 +73,28 @@ public class FXMLController {
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
+    	String input = txtN.getText(); 
+    	int tracce=0; 
+    	try {
+    		tracce = Integer.parseInt(input); 
+    		
+    	}catch(NumberFormatException e) {
+    		txtResult.setText("Inserire un valore valido per il numero delle tracce!");
+    		return; 
+    	}
     	
+    	model.creaGrafo(tracce);
+    	txtResult.setText("Grafo creato! \n");
+    	txtResult.appendText("- Vertici: "+model.getnVertici()+"\n");
+    	txtResult.appendText("- Archi: "+model.getnArchi()+"\n");
+    	
+    	List<Album> tendina = model.getListaOrdinataAlbum();
+    	for(Album a: tendina) {
+    		cmbA1.getItems().add(a); 
+    	}
+    	
+    	return; 
+     	
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete

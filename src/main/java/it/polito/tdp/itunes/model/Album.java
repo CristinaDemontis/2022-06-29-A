@@ -3,11 +3,13 @@ package it.polito.tdp.itunes.model;
 public class Album {
 	private Integer albumId;
 	private String title;
+	private double bilancio; 
 	
 	public Album(Integer albumId, String title) {
 		super();
 		this.albumId = albumId;
 		this.title = title;
+		this.bilancio = 0 ; 
 	}
 
 	public Integer getAlbumId() {
@@ -55,6 +57,15 @@ public class Album {
 	public String toString() {
 		return title;
 	}
+
+	public double getBilancio() {
+		return bilancio;
+	}
+
+	public void setBilancio(double bilancio) {
+		this.bilancio = bilancio;
+	}
+
 	
 	
 	
